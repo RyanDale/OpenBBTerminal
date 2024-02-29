@@ -1,6 +1,7 @@
 """Test crypto extension."""
 
 import pytest
+from extensions.tests.conftest import parametrize
 from openbb_core.app.model.obbject import OBBject
 
 # pylint: disable=redefined-outer-name
@@ -15,7 +16,7 @@ def obb(pytestconfig):  # pylint: disable=inconsistent-return-statements
         return openbb.obb
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
         ({"query": "asd"}),
@@ -32,7 +33,7 @@ def test_crypto_search(params, obb):
     assert len(result.results) > 0
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
         (
@@ -64,11 +65,9 @@ def test_crypto_search(params, obb):
         ),
         (
             {
-                "multiplier": 1,
-                "timespan": "minute",
+                "interval": "1m",
                 "sort": "desc",
                 "limit": 49999,
-                "adjusted": True,
                 "provider": "polygon",
                 "symbol": "BTCUSD",
                 "start_date": "2023-01-01",
@@ -77,11 +76,9 @@ def test_crypto_search(params, obb):
         ),
         (
             {
-                "multiplier": 1,
-                "timespan": "day",
+                "interval": "1d",
                 "sort": "desc",
                 "limit": 49999,
-                "adjusted": True,
                 "provider": "polygon",
                 "symbol": "BTCUSD",
                 "start_date": "2023-01-01",
@@ -95,7 +92,7 @@ def test_crypto_search(params, obb):
                 "provider": "yfinance",
                 "symbol": "BTCUSD",
                 "start_date": "2023-01-01",
-                "end_date": "2023-06-06",
+                "end_date": "2023-01-04",
             }
         ),
         (

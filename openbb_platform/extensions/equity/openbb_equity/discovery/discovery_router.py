@@ -1,4 +1,5 @@
 """Disc router for Equities."""
+
 # pylint: disable=unused-argument
 from openbb_core.app.model.command_context import CommandContext
 from openbb_core.app.model.obbject import OBBject
@@ -9,7 +10,6 @@ from openbb_core.app.provider_interface import (
 )
 from openbb_core.app.query import Query
 from openbb_core.app.router import Router
-from pydantic import BaseModel
 
 router = Router(prefix="/discovery")
 
@@ -20,8 +20,8 @@ async def gainers(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Get the top Equity gainers."""
+) -> OBBject:
+    """Get the top price gainers in the stock market."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -31,8 +31,8 @@ async def losers(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Get the top Equity losers."""
+) -> OBBject:
+    """Get the top price losers in the stock market."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -42,8 +42,8 @@ async def active(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Get the most active Equities."""
+) -> OBBject:
+    """Get the most actively traded stocks based on volume."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -53,8 +53,8 @@ async def undervalued_large_caps(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Get undervalued large cap Equities."""
+) -> OBBject:
+    """Get potentially undervalued large cap stocks."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -64,8 +64,8 @@ async def undervalued_growth(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Get undervalued growth Equities."""
+) -> OBBject:
+    """Get potentially undervalued growth stocks."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -75,8 +75,8 @@ async def aggressive_small_caps(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Get aggressive small cap Equities."""
+) -> OBBject:
+    """Get top small cap stocks based on earnings growth."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -86,8 +86,8 @@ async def growth_tech(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Get growth tech Equities."""
+) -> OBBject:
+    """Get top tech stocks based on revenue and earnings growth."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -97,12 +97,11 @@ async def top_retail(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
+) -> OBBject:
     """Tracks over $30B USD/day of individual investors trades.
 
     It gives a daily view into retail activity and sentiment for over 9,500 US traded stocks,
-    ADRs, and ETPs.
-    """
+    ADRs, and ETPs."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -112,17 +111,28 @@ async def upcoming_release_days(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Get upcoming release days."""
+) -> OBBject:
+    """Get upcoming earnings release dates."""
     return await OBBject.from_query(Query(**locals()))
 
 
-@router.command(model="DiscoveryFilings")
+@router.command(
+    model="DiscoveryFilings",
+    examples=[
+        "# Get filings for the year 2023, limited to 100 results",
+        "obb.equity.discovery.filings(start_date='2023-01-01', end_date='2023-12-31')",
+    ],
+)
 async def filings(
     cc: CommandContext,
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Get the most-recent filings submitted to the SEC."""
+) -> OBBject:
+    """Get the URLs to SEC filings reported to EDGAR database, such as 10-K, 10-Q, 8-K, and more. SEC
+    filings include Form 10-K, Form 10-Q, Form 8-K, the proxy statement, Forms 3, 4, and 5, Schedule 13, Form 114,
+    Foreign Investment Disclosures and others. The annual 10-K report is required to be
+    filed annually and includes the company's financial statements, management discussion and analysis,
+    and audited financial statements.
+    """
     return await OBBject.from_query(Query(**locals()))

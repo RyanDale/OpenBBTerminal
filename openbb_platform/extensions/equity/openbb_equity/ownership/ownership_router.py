@@ -9,7 +9,6 @@ from openbb_core.app.provider_interface import (
 )
 from openbb_core.app.query import Query
 from openbb_core.app.router import Router
-from pydantic import BaseModel
 
 router = Router(prefix="/ownership")
 
@@ -22,8 +21,8 @@ async def major_holders(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Equity Ownership. Information about the company ownership."""
+) -> OBBject:
+    """Get data about major holders for a given company over time."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -33,8 +32,8 @@ async def institutional(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Institutional Ownership. Institutional ownership data."""
+) -> OBBject:
+    """Get data about institutional ownership for a given company over time."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -44,8 +43,8 @@ async def insider_trading(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Insider Trading. Information about insider trading."""
+) -> OBBject:
+    """Get data about trading by a company's management team and board of directors."""
     return await OBBject.from_query(Query(**locals()))
 
 
@@ -55,6 +54,6 @@ async def share_statistics(
     provider_choices: ProviderChoices,
     standard_params: StandardParams,
     extra_params: ExtraParams,
-) -> OBBject[BaseModel]:
-    """Share Statistics. Share statistics for a given company."""
+) -> OBBject:
+    """Get data about share float for a given company."""
     return await OBBject.from_query(Query(**locals()))

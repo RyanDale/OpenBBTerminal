@@ -1,12 +1,11 @@
 ### THIS FILE IS AUTO-GENERATED. DO NOT EDIT. ###
 
-from typing import List, Literal, Optional
+from typing import Literal, Optional
 
 from openbb_core.app.model.obbject import OBBject
 from openbb_core.app.static.container import Container
-from openbb_core.app.static.decorators import validate
-from openbb_core.app.static.filters import filter_inputs
-from openbb_core.provider.abstract.data import Data
+from openbb_core.app.static.utils.decorators import exception_handler, validate
+from openbb_core.app.static.utils.filters import filter_inputs
 
 
 class ROUTER_currency(Container):
@@ -19,16 +18,27 @@ class ROUTER_currency(Container):
         return self.__doc__ or ""
 
     @property
-    def price(self):  # route = "/currency/price"
+    def price(self):
+        # pylint: disable=import-outside-toplevel
         from . import currency_price
 
         return currency_price.ROUTER_currency_price(command_runner=self._command_runner)
 
+    @exception_handler
     @validate
     def search(
         self, provider: Optional[Literal["fmp", "intrinio", "polygon"]] = None, **kwargs
-    ) -> OBBject[List[Data]]:
-        """Currency Search. Search available currency pairs.
+    ) -> OBBject:
+        """Currency Search.
+
+        Search available currency pairs.
+        Currency pairs are the national currencies from two countries coupled for trading on
+        the foreign exchange (FX) marketplace.
+        Both currencies will have exchange rates on which the trade will have its position basis.
+        All trading within the forex market, whether selling, buying, or trading, will take place through currency pairs.
+        (ref: Investopedia)
+        Major currency pairs include pairs such as EUR/USD, USD/JPY, GBP/USD, etc.
+
 
         Parameters
         ----------
@@ -62,7 +72,7 @@ class ROUTER_currency(Container):
                 List of warnings.
             chart : Optional[Chart]
                 Chart object.
-            extra: Dict[str, Any]
+            extra : Dict[str, Any]
                 Extra info.
 
         CurrencyPairs
@@ -104,17 +114,25 @@ class ROUTER_currency(Container):
         -------
         >>> from openbb import obb
         >>> obb.currency.search()
+        >>> # Search for 'EURUSD' currency pair using 'polygon' as provider.
+        >>> obb.currency.search(provider='polygon', symbol='EURUSD')
+        >>> # Search for terms  using 'polygon' as provider.
+        >>> obb.currency.search(provider='polygon', search='Euro zone')
+        >>> # Search for actively traded currency pairs on the queried date using 'polygon' as provider.
+        >>> obb.currency.search(provider='polygon', date='2024-01-02', active=True)
         """  # noqa: E501
-
-        inputs = filter_inputs(
-            provider_choices={
-                "provider": provider,
-            },
-            standard_params={},
-            extra_params=kwargs,
-        )
 
         return self._run(
             "/currency/search",
-            **inputs,
+            **filter_inputs(
+                provider_choices={
+                    "provider": self._get_provider(
+                        provider,
+                        "/currency/search",
+                        ("fmp", "intrinio", "polygon"),
+                    )
+                },
+                standard_params={},
+                extra_params=kwargs,
+            )
         )

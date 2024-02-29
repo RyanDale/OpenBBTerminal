@@ -34,7 +34,7 @@ class IntrinioOptionsUnusualData(OptionsUnusualData):
 
     @field_validator("contract_symbol", mode="before", check_fields=False)
     @classmethod
-    def contract_symbol(cls, v):
+    def validate_contract_symbol(cls, v: str):  # pylint: disable=E0213
         """Return the symbol as the OCC standard format."""
         return v.replace("_", "") if v else None
 
@@ -73,7 +73,7 @@ class IntrinioOptionsUnusualFetcher(
         return IntrinioOptionsUnusualQueryParams(**params)
 
     @staticmethod
-    def extract_data(
+    async def aextract_data(
         query: IntrinioOptionsUnusualQueryParams,
         credentials: Optional[Dict[str, str]],
         **kwargs: Any,
@@ -89,7 +89,7 @@ class IntrinioOptionsUnusualFetcher(
             if query.symbol
             else base_url + f"?source={query.source}&api_key={api_key}"
         )
-        response = get_data_one(url, **kwargs)
+        response = await get_data_one(url, **kwargs)
 
         if "trades" in response:
             data = sorted(

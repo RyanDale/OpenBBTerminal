@@ -26,7 +26,7 @@ class PolygonCurrencyPairsQueryParams(CurrencyPairsQueryParams):
         default=None, description="Symbol of the pair to search."
     )
     date: Optional[dateType] = Field(
-        default=datetime.now().date(), description=QUERY_DESCRIPTIONS.get("date", "")
+        default=None, description=QUERY_DESCRIPTIONS.get("date", "")
     )
     search: Optional[str] = Field(
         default="",
@@ -115,7 +115,7 @@ class PolygonCurrencyPairsFetcher(
         return PolygonCurrencyPairsQueryParams(**transform_params)
 
     @staticmethod
-    def extract_data(
+    async def aextract_data(
         query: PolygonCurrencyPairsQueryParams,
         credentials: Optional[Dict[str, str]],
         **kwargs: Any,
@@ -134,7 +134,7 @@ class PolygonCurrencyPairsFetcher(
         all_data: List[Dict] = []
 
         while "next_url" in data:
-            data = get_data(request_url, **kwargs)
+            data = await get_data(request_url, **kwargs)
 
             if isinstance(data, list):
                 raise ValueError("Expected a dict, got a list")
@@ -159,6 +159,7 @@ class PolygonCurrencyPairsFetcher(
 
         return all_data
 
+    # pylint: disable=unused-argument
     @staticmethod
     def transform_data(
         query: PolygonCurrencyPairsQueryParams,

@@ -1,8 +1,10 @@
 """Test crypto API endpoints."""
+
 import base64
 
 import pytest
 import requests
+from extensions.tests.conftest import parametrize
 from openbb_core.env import Env
 from openbb_core.provider.utils.helpers import get_querystring
 
@@ -18,7 +20,7 @@ def headers():
     return {"Authorization": f"Basic {base64_bytes.decode('ascii')}"}
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
         ({"query": "asd"}),
@@ -36,7 +38,7 @@ def test_crypto_search(params, headers):
     assert result.status_code == 200
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
         (
@@ -69,11 +71,9 @@ def test_crypto_search(params, headers):
         ),
         (
             {
-                "multiplier": 1,
-                "timespan": "minute",
+                "interval": "1m",
                 "sort": "desc",
                 "limit": 49999,
-                "adjusted": True,
                 "provider": "polygon",
                 "symbol": "BTCUSD",
                 "start_date": "2023-01-01",
@@ -82,11 +82,9 @@ def test_crypto_search(params, headers):
         ),
         (
             {
-                "multiplier": 1,
-                "timespan": "day",
+                "interval": "1d",
                 "sort": "desc",
                 "limit": 49999,
-                "adjusted": True,
                 "provider": "polygon",
                 "symbol": "BTCUSD",
                 "start_date": "2023-01-01",
@@ -100,7 +98,7 @@ def test_crypto_search(params, headers):
                 "provider": "yfinance",
                 "symbol": "BTCUSD",
                 "start_date": "2023-01-01",
-                "end_date": "2023-06-06",
+                "end_date": "2023-01-03",
             }
         ),
         (

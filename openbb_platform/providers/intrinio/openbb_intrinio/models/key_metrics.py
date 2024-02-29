@@ -7,7 +7,10 @@ from openbb_core.provider.standard_models.key_metrics import (
     KeyMetricsData,
     KeyMetricsQueryParams,
 )
-from openbb_intrinio.utils.helpers import get_data_one
+from openbb_core.provider.utils.helpers import (
+    ClientResponse,
+    amake_requests,
+)
 from pydantic import Field
 
 
@@ -31,11 +34,18 @@ class IntrinioKeyMetricsData(KeyMetricsData):
         "pe_ratio": "pricetoearnings",
     }
 
-    beta: float = Field(description="Beta")
+    beta: float = Field(
+        description="Beta relative to the broad market calculated on a rolling three-year basis."
+    )
     volume: float = Field(description="Volume")
     fifty_two_week_high: float = Field(description="52 week high", alias="52_week_high")
     fifty_two_week_low: float = Field(description="52 week low", alias="52_week_low")
-    dividend_yield: float = Field(description="Dividend yield", alias="dividendyield")
+    dividend_yield: float = Field(
+        default=None,
+        description="Dividend yield, as a normalized percent.",
+        json_schema_extra={"unit_measurement": "percent", "frontend_multiply": 100},
+        alias="dividendyield",
+    )
 
 
 class IntrinioKeyMetricsFetcher(
@@ -52,14 +62,13 @@ class IntrinioKeyMetricsFetcher(
         return IntrinioKeyMetricsQueryParams(**params)
 
     @staticmethod
-    def extract_data(
+    async def aextract_data(
         query: IntrinioKeyMetricsQueryParams,  # pylint: disable=unused-argument
         credentials: Optional[Dict[str, str]],
         **kwargs: Any,
     ) -> Dict:
         """Return the raw data from the Intrinio endpoint."""
         api_key = credentials.get("intrinio_api_key") if credentials else ""
-        data: Dict = {}
         tags = [
             "beta",
             "volume",
@@ -70,10 +79,18 @@ class IntrinioKeyMetricsFetcher(
             "pricetoearnings",
         ]
 
-        data["symbol"] = query.symbol
-        for tag in tags:
-            url = f"https://api-v2.intrinio.com/companies/{query.symbol}/data_point/{tag}?api_key={api_key}"
-            data[tag] = get_data_one(url).get("value")
+        urls = [
+            f"https://api-v2.intrinio.com/companies/{query.symbol}/data_point/{tag}?api_key={api_key}"
+            for tag in tags
+        ]
+
+        async def callback(response: ClientResponse, _: Any) -> Dict:
+            """Return the response."""
+            return {response.url.parts[-1]: await response.json()}
+
+        data: Dict = {"symbol": query.symbol}
+        for result in await amake_requests(urls, callback, **kwargs):
+            data.update(result)
 
         return data
 

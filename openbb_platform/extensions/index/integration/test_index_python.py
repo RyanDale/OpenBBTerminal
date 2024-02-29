@@ -1,6 +1,7 @@
 """Test economy extension."""
 
 import pytest
+from extensions.tests.conftest import parametrize
 from openbb_core.app.model.obbject import OBBject
 
 
@@ -17,10 +18,12 @@ def obb(pytestconfig):  # pylint: disable=inconsistent-return-statements
 # pylint: disable=redefined-outer-name
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
-        ({"index": "dowjones"}),
+        ({"symbol": "dowjones", "provider": "fmp"}),
+        ({"symbol": "BUKBUS", "provider": "cboe"}),
+        ({"symbol": "^TX60", "provider": "tmx", "use_cache": False}),
     ],
 )
 @pytest.mark.integration
@@ -31,23 +34,19 @@ def test_index_constituents(params, obb):
     assert len(result.results) > 0
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
         (
             {
-                "symbol": "AAVE100",
-                "start_date": "2023-01-01",
-                "end_date": "2023-06-06",
-            }
-        ),
-        (
-            {
-                "interval": "1m",
+                "interval": "1d",
                 "provider": "cboe",
                 "symbol": "AAVE100",
-                "start_date": "2023-01-01",
-                "end_date": "2023-06-06",
+                "start_date": "2024-01-01",
+                "end_date": "2024-02-05",
+                "use_cache": False,
+                "sort": None,
+                "limit": None,
             }
         ),
         (
@@ -57,6 +56,9 @@ def test_index_constituents(params, obb):
                 "symbol": "AAVE100",
                 "start_date": "2023-01-01",
                 "end_date": "2023-06-06",
+                "use_cache": False,
+                "sort": None,
+                "limit": None,
             }
         ),
         (
@@ -64,9 +66,11 @@ def test_index_constituents(params, obb):
                 "interval": "1min",
                 "provider": "fmp",
                 "symbol": "^DJI",
-                "start_date": "2023-01-01",
-                "end_date": "2023-06-06",
+                "start_date": "2024-01-01",
+                "end_date": "2024-02-05",
                 "timeseries": 1,
+                "sort": "desc",
+                "limit": None,
             }
         ),
         (
@@ -77,15 +81,15 @@ def test_index_constituents(params, obb):
                 "start_date": "2023-01-01",
                 "end_date": "2023-06-06",
                 "timeseries": 1,
+                "sort": "desc",
+                "limit": None,
             }
         ),
         (
             {
-                "timespan": "minute",
+                "interval": "1m",
                 "sort": "desc",
                 "limit": 49999,
-                "adjusted": True,
-                "multiplier": 1,
                 "provider": "polygon",
                 "symbol": "NDX",
                 "start_date": "2023-01-01",
@@ -94,11 +98,9 @@ def test_index_constituents(params, obb):
         ),
         (
             {
-                "timespan": "day",
+                "interval": "1d",
                 "sort": "desc",
                 "limit": 49999,
-                "adjusted": True,
-                "multiplier": 1,
                 "provider": "polygon",
                 "symbol": "NDX",
                 "start_date": "2023-01-01",
@@ -115,6 +117,133 @@ def test_index_constituents(params, obb):
                 "symbol": "DJI",
                 "start_date": "2023-01-01",
                 "end_date": "2023-06-06",
+                "sort": None,
+                "limit": None,
+            }
+        ),
+        (
+            {
+                "interval": "1d",
+                "provider": "intrinio",
+                "start_date": "2023-01-01",
+                "end_date": "2023-06-06",
+                "symbol": "DJI",
+                "sort": "desc",
+                "limit": 100,
+            }
+        ),
+    ],
+)
+@pytest.mark.integration
+def test_index_price_historical(params, obb):
+    result = obb.index.price.historical(**params)
+    assert result
+    assert isinstance(result, OBBject)
+    assert len(result.results) > 0
+
+
+@parametrize(
+    "params",
+    [
+        (
+            {
+                "symbol": "^DJI",
+                "start_date": "2023-01-01",
+                "end_date": "2023-03-03",
+                "provider": "fmp",
+                "sort": "desc",
+                "interval": "1day",
+                "limit": None,
+            }
+        ),
+        (
+            {
+                "interval": "1d",
+                "provider": "cboe",
+                "symbol": "AAVE100",
+                "start_date": "2023-01-01",
+                "end_date": "2023-01-05",
+                "use_cache": True,
+                "limit": None,
+                "sort": None,
+            }
+        ),
+        (
+            {
+                "interval": "1d",
+                "provider": "cboe",
+                "symbol": "AAVE100",
+                "start_date": "2024-01-01",
+                "end_date": "2024-02-06",
+                "use_cache": False,
+                "limit": None,
+                "sort": None,
+            }
+        ),
+        (
+            {
+                "interval": "1min",
+                "provider": "fmp",
+                "symbol": "^DJI",
+                "start_date": "2024-02-01",
+                "end_date": "2024-02-03",
+                "timeseries": 1,
+                "sort": "desc",
+                "limit": None,
+            }
+        ),
+        (
+            {
+                "interval": "1day",
+                "provider": "fmp",
+                "symbol": "^DJI",
+                "start_date": "2023-01-01",
+                "end_date": "2023-06-06",
+                "timeseries": 1,
+                "sort": "desc",
+                "limit": None,
+            }
+        ),
+        (
+            {
+                "timespan": "minute",
+                "sort": "desc",
+                "limit": 49999,
+                "adjusted": True,
+                "multiplier": 1,
+                "provider": "polygon",
+                "symbol": "NDX",
+                "start_date": "2023-01-01",
+                "end_date": "2023-06-06",
+                "interval": None,
+            }
+        ),
+        (
+            {
+                "timespan": "day",
+                "sort": "desc",
+                "limit": 49999,
+                "adjusted": True,
+                "multiplier": 1,
+                "provider": "polygon",
+                "symbol": "NDX",
+                "start_date": "2023-01-01",
+                "end_date": "2023-06-06",
+                "interval": None,
+            }
+        ),
+        (
+            {
+                "interval": "1d",
+                "period": "max",
+                "prepost": True,
+                "rounding": True,
+                "provider": "yfinance",
+                "symbol": "DJI",
+                "start_date": "2023-01-01",
+                "end_date": "2023-06-06",
+                "limit": None,
+                "sort": None,
             }
         ),
         (
@@ -127,6 +256,7 @@ def test_index_constituents(params, obb):
                 "sort": "desc",
                 "limit": 100,
                 "type": None,
+                "interval": None,
             }
         ),
     ],
@@ -139,65 +269,14 @@ def test_index_market(params, obb):
     assert len(result.results) > 0
 
 
-@pytest.mark.parametrize(
-    "params",
-    [
-        (
-            {
-                "symbol": "BUKBUS",
-                "start_date": "2023-01-01",
-                "end_date": "2023-06-06",
-            }
-        ),
-        (
-            {
-                "interval": "1m",
-                "provider": "cboe",
-                "symbol": "BUKBUS",
-                "start_date": "2023-01-01",
-                "end_date": "2023-06-06",
-            }
-        ),
-        (
-            {
-                "interval": "1d",
-                "provider": "cboe",
-                "symbol": "BUKBUS",
-                "start_date": "2023-01-01",
-                "end_date": "2023-06-06",
-            }
-        ),
-    ],
-)
-@pytest.mark.integration
-def test_index_european(params, obb):
-    result = obb.index.european(**params)
-    assert result
-    assert isinstance(result, OBBject)
-    assert len(result.results) > 0
-
-
-@pytest.mark.parametrize(
-    "params",
-    [
-        ({"symbol": "BUKBUS"}),
-    ],
-)
-@pytest.mark.integration
-def test_index_european_constituents(params, obb):
-    result = obb.index.european_constituents(**params)
-    assert result
-    assert isinstance(result, OBBject)
-    assert len(result.results) > 0
-
-
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
         ({}),
-        ({"europe": True, "provider": "cboe"}),
+        ({"provider": "cboe", "use_cache": False}),
         ({"provider": "fmp"}),
         ({"provider": "yfinance"}),
+        ({"provider": "tmx", "use_cache": False}),
     ],
 )
 @pytest.mark.integration
@@ -208,11 +287,17 @@ def test_index_available(params, obb):
     assert len(result.results) > 0
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
-        ({"query": "D", "is_symbol": True}),
-        ({"europe": True, "provider": "cboe", "query": "A", "is_symbol": False}),
+        (
+            {
+                "query": "D",
+                "is_symbol": True,
+                "provider": "cboe",
+                "use_cache": False,
+            }
+        ),
     ],
 )
 @pytest.mark.integration
@@ -223,10 +308,11 @@ def test_index_search(params, obb):
     assert len(result.results) > 0
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
-        ({"region": "US"}),
+        ({"region": "us", "provider": "cboe"}),
+        ({"provider": "tmx", "region": "ca", "use_cache": False}),
     ],
 )
 @pytest.mark.integration
@@ -237,12 +323,12 @@ def test_index_snapshots(params, obb):
     assert len(result.results) > 0
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "params",
     [
         (
             {
-                "series_name": "PE Ratio by Month",
+                "series_name": "pe_month",
                 "start_date": "2023-01-01",
                 "end_date": "2023-06-06",
                 "collapse": "monthly",
@@ -255,6 +341,20 @@ def test_index_snapshots(params, obb):
 @pytest.mark.integration
 def test_index_sp500_multiples(params, obb):
     result = obb.index.sp500_multiples(**params)
+    assert result
+    assert isinstance(result, OBBject)
+    assert len(result.results) > 0
+
+
+@parametrize(
+    "params",
+    [
+        ({"symbol": "^TX60", "provider": "tmx"}),
+    ],
+)
+@pytest.mark.integration
+def test_index_sectors(params, obb):
+    result = obb.index.sectors(**params)
     assert result
     assert isinstance(result, OBBject)
     assert len(result.results) > 0

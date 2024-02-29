@@ -1,6 +1,7 @@
 """Yahoo Finance Currency Price Model."""
-# ruff: noqa: SIM105
 
+# ruff: noqa: SIM105
+# pylint: disable=unused-argument
 
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
@@ -25,6 +26,8 @@ class YFinanceCurrencyHistoricalQueryParams(CurrencyHistoricalQueryParams):
     Source: https://finance.yahoo.com/currencies/
     """
 
+    __json_schema_extra__ = {"symbol": ["multiple_items_allowed"]}
+
     interval: Optional[INTERVALS] = Field(default="1d", description="Data granularity.")
     period: Optional[PERIODS] = Field(
         default="max", description=QUERY_DESCRIPTIONS.get("period", "")
@@ -48,12 +51,14 @@ class YFinanceCurrencyHistoricalFetcher(
         params: Dict[str, Any]
     ) -> YFinanceCurrencyHistoricalQueryParams:
         """Transform the query."""
+
         transformed_params = params
-        transformed_params["symbol"] = (
-            f"{transformed_params['symbol'].upper()}=X"
-            if "=X" not in transformed_params["symbol"].upper()
-            else transformed_params["symbol"].upper()
-        )
+        symbols = params["symbol"].split(",")
+        new_symbols = [
+            f"{s.upper()}=X" if "=X" not in s.upper() else s.upper() for s in symbols
+        ]
+        transformed_params["symbol"] = ",".join(new_symbols)
+
         now = datetime.now().date()
 
         if params.get("start_date") is None:
@@ -66,7 +71,7 @@ class YFinanceCurrencyHistoricalFetcher(
 
     @staticmethod
     def extract_data(
-        query: YFinanceCurrencyHistoricalQueryParams,  # pylint: disable=unused-argument
+        query: YFinanceCurrencyHistoricalQueryParams,
         credentials: Optional[Dict[str, str]],
         **kwargs: Any,
     ) -> List[Dict]:
@@ -94,16 +99,15 @@ class YFinanceCurrencyHistoricalFetcher(
                 data.set_index("date", inplace=True)
                 data.index = to_datetime(data.index)
 
-            start_date_dt = datetime.combine(query.start_date, datetime.min.time())
-            end_date_dt = datetime.combine(query.end_date, datetime.min.time())
-
             data = data[
-                (data.index >= start_date_dt + timedelta(days=days))
-                & (data.index <= end_date_dt)
+                (data.index >= to_datetime(query.start_date))
+                & (data.index <= to_datetime(query.end_date + timedelta(days=days)))
             ]
 
         data.reset_index(inplace=True)
         data.rename(columns={"index": "date"}, inplace=True)
+        if query.interval in ["1d", "1W", "1M", "3M"]:
+            data["date"] = data["date"].dt.strftime("%Y-%m-%d")
 
         return data.to_dict("records")
 

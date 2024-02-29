@@ -1,4 +1,5 @@
 """Yahoo Finance Crypto Historical Price Model."""
+
 # ruff: noqa: SIM105
 
 
@@ -16,7 +17,7 @@ from openbb_core.provider.utils.errors import EmptyDataError
 from openbb_yfinance.utils.helpers import yf_download
 from openbb_yfinance.utils.references import INTERVALS, PERIODS
 from pandas import to_datetime
-from pydantic import Field, field_validator
+from pydantic import Field
 
 
 class YFinanceCryptoHistoricalQueryParams(CryptoHistoricalQueryParams):
@@ -24,6 +25,8 @@ class YFinanceCryptoHistoricalQueryParams(CryptoHistoricalQueryParams):
 
     Source: https://finance.yahoo.com/crypto/
     """
+
+    __json_schema_extra__ = {"symbol": ["multiple_items_allowed"]}
 
     interval: Optional[INTERVALS] = Field(default="1d", description="Data granularity.")
     period: Optional[PERIODS] = Field(
@@ -33,14 +36,6 @@ class YFinanceCryptoHistoricalQueryParams(CryptoHistoricalQueryParams):
 
 class YFinanceCryptoHistoricalData(CryptoHistoricalData):
     """Yahoo Finance Crypto Historical Price Data."""
-
-    @field_validator("date", mode="before", check_fields=False)
-    @classmethod
-    def date_validate(cls, v):
-        """Return datetime object from string."""
-        if isinstance(v, str):
-            return datetime.strptime(v, "%Y-%m-%dT%H:%M:%S")
-        return v
 
 
 class YFinanceCryptoHistoricalFetcher(
@@ -63,7 +58,7 @@ class YFinanceCryptoHistoricalFetcher(
         if params.get("end_date") is None:
             transformed_params["end_date"] = now
 
-        return YFinanceCryptoHistoricalQueryParams(**params)
+        return YFinanceCryptoHistoricalQueryParams(**transformed_params)
 
     @staticmethod
     def extract_data(
@@ -72,12 +67,20 @@ class YFinanceCryptoHistoricalFetcher(
         **kwargs: Any,
     ) -> List[Dict]:
         """Return the raw data from the Yahoo Finance endpoint."""
-        if "-" not in query.symbol:
-            position = len(query.symbol) - 3
-            query.symbol = query.symbol[:position] + "-" + query.symbol[position:]
+
+        tickers = query.symbol.split(",")
+        new_tickers = []
+        for ticker in tickers:
+            if "-" not in ticker:
+                new_ticker = ticker[:-3] + "-" + ticker[-3:]
+            if "-" in ticker:
+                new_ticker = ticker
+            new_tickers.append(new_ticker)
+
+        symbols = ",".join(new_tickers)
 
         data = yf_download(
-            query.symbol,
+            symbols,
             start=query.start_date,
             end=query.end_date,
             interval=query.interval,
@@ -99,16 +102,16 @@ class YFinanceCryptoHistoricalFetcher(
                 data.set_index("date", inplace=True)
                 data.index = to_datetime(data.index)
 
-            start_date_dt = datetime.combine(query.start_date, datetime.min.time())
-            end_date_dt = datetime.combine(query.end_date, datetime.min.time())
-
             data = data[
-                (data.index >= start_date_dt + timedelta(days=days))
-                & (data.index <= end_date_dt)
+                (data.index >= to_datetime(query.start_date))
+                & (data.index <= to_datetime(query.end_date + timedelta(days=days)))
             ]
 
         data.reset_index(inplace=True)
         data.rename(columns={"index": "date"}, inplace=True)
+
+        if query.interval in ["1d", "1W", "1M", "3M"]:
+            data["date"] = data["date"].dt.strftime("%Y-%m-%d")
 
         return data.to_dict("records")
 
