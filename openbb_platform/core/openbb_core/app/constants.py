@@ -1,8 +1,14 @@
 """Constants for the OpenBB Platform."""
 
+import os
 from pathlib import Path
 
-HOME_DIRECTORY = Path.home()
+try:
+    home_path = os.environ["OPENBB_USER_DATA_DIRECTORY"]
+except KeyError:
+    home_path = Path.home()
+
+HOME_DIRECTORY = home_path
 OPENBB_DIRECTORY = Path(HOME_DIRECTORY, ".openbb_platform")
 USER_SETTINGS_PATH = Path(OPENBB_DIRECTORY, "user_settings.json")
 SYSTEM_SETTINGS_PATH = Path(OPENBB_DIRECTORY, "system_settings.json")
