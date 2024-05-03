@@ -11,7 +11,7 @@ except KeyError:
 # Testing
 home_path = '/tmp'
 
-HOME_DIRECTORY = Path.home()
+HOME_DIRECTORY = home_path
 OPENBB_DIRECTORY = Path(HOME_DIRECTORY, ".openbb_platform")
 USER_SETTINGS_PATH = Path(OPENBB_DIRECTORY, "user_settings.json")
 SYSTEM_SETTINGS_PATH = Path(OPENBB_DIRECTORY, "system_settings.json")
