@@ -1715,19 +1715,6 @@ openbb-core = ">=1.1.6,<2.0.0"
 xmltodict = ">=0.13.0,<0.14.0"
 
 [[package]]
-name = "openbb-econdb"
-version = "1.0.0"
-description = "EconDB extension for OpenBB"
-optional = false
-python-versions = "*"
-files = []
-develop = true
-
-[package.source]
-type = "directory"
-url = "providers/econdb"
-
-[[package]]
 name = "openbb-econometrics"
 version = "1.1.5"
 description = "Econometrics Toolkit for OpenBB"
