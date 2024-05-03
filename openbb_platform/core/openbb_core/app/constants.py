@@ -8,6 +8,9 @@ try:
 except KeyError:
     home_path = Path.home()
 
+# Testing
+home_path = '/tmp'
+
 HOME_DIRECTORY = home_path
 OPENBB_DIRECTORY = Path(HOME_DIRECTORY, ".openbb_platform")
 USER_SETTINGS_PATH = Path(OPENBB_DIRECTORY, "user_settings.json")
