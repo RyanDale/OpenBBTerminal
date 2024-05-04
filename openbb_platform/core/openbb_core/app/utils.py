@@ -148,6 +148,7 @@ def get_target_columns(df: pd.DataFrame, target_columns: List[str]) -> pd.DataFr
 def get_user_cache_directory() -> str:
     """Get user cache directory."""
     file = SystemSettings().model_dump()["user_settings_path"]
+    print ('file path', file)
     with open(file) as settings_file:
         contents = settings_file.read()
     try:
