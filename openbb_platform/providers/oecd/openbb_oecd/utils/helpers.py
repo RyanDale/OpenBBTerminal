@@ -15,6 +15,7 @@ from pandas import DataFrame, read_csv, read_parquet, to_datetime
 
 cache = get_user_cache_directory() + "/oecd"
 # Create the cache directory if it does not exist
+print ('cached path', cache)
 Path(cache).mkdir(parents=True, exist_ok=True)
 
 # OECD does not play well with newer python.  This code block from stackoverflow helps
