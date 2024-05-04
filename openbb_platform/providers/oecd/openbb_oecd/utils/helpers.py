@@ -14,6 +14,7 @@ from openbb_core.provider import helpers
 from pandas import DataFrame, read_csv, read_parquet, to_datetime
 
 cache = get_user_cache_directory() + "/oecd"
+cache = "/tmp/oecd"
 # Create the cache directory if it does not exist
 print ('cached path', cache)
 Path(cache).mkdir(parents=True, exist_ok=True)
