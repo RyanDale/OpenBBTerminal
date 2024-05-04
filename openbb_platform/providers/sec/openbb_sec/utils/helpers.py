@@ -12,7 +12,7 @@ import requests_cache
 from openbb_core.app.utils import get_user_cache_directory
 from openbb_sec.utils.definitions import HEADERS, QUARTERS, SEC_HEADERS, TAXONOMIES
 
-cache_dir = get_user_cache_directory()
+cache_dir = "/tmp" # get_user_cache_directory()
 
 sec_session_companies = requests_cache.CachedSession(
     f"{cache_dir}/http/sec_companies", expire_after=timedelta(days=2)
